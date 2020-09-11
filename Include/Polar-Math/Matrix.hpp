@@ -1,7 +1,7 @@
 #ifndef __POLAR__FILE_MATRIX_HPP
 #define __POLAR__FILE_MATRIX_HPP
 
-#include "Vector.hpp"
+#include <Polar-Math/Vector.hpp>
 
 #if !defined(__POLAR__NO_AVX)
     #include <immintrin.h> 

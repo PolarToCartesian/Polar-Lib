@@ -1,8 +1,8 @@
 #ifndef __POLAR__FILE_POLAR_LIB_HPP
 #define __POLAR__FILE_POLAR_LIB_HPP
 
-#include "Polar-Math/Polar-Math.hpp"
-#include "Polar-Build/Polar-Build.hpp"
-#include "Polar-Window/Polar-Window.hpp"
+#include <Polar-Math/Polar-Math.hpp>
+#include <Polar-Build/Polar-Build.hpp>
+#include <Polar-Window/Polar-Window.hpp>
 
 #endif // __POLAR__FILE_POLAR_LIB_HPP
