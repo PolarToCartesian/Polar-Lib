@@ -4,7 +4,6 @@
 #include <Polar-Math/Color.hpp>
 #include <Polar-Math/Vector.hpp>
 #include <Polar-Math/Matrix.hpp>
-#include <Polar-Math/Shapes.hpp>
 #include <Polar-Math/Constants.hpp>
 #include <Polar-Math/Transform.hpp>
 
