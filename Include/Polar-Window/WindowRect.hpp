@@ -12,10 +12,10 @@
 namespace PL {
 
     struct Rect {
-		std::uint32_t left   = 0u;
-		std::uint32_t top    = 0u;
-		std::uint32_t right  = 0u;
-		std::uint32_t bottom = 0u;
+		std::int32_t left   = 0u;
+		std::int32_t top    = 0u;
+		std::int32_t right  = 0u;
+		std::int32_t bottom = 0u;
 
 #ifdef __POLAR__TARGET_WINDOWS
 

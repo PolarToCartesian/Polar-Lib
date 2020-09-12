@@ -49,10 +49,10 @@ namespace PL {
 			const float cosX = std::cos(radX);
 
 			return Mat4x4f32(std::array<float, 16u>{
-				1, 0, 0, 0,
-					0, cosX, -sinX, 0,
-					0, sinX, cosX, 0,
-					0, 0, 0, 1
+				1, 0,    0,     0,
+				0, cosX, -sinX, 0,
+				0, sinX, cosX,  0,
+				0, 0,    0,     1
 			});
 		}
 
@@ -62,10 +62,10 @@ namespace PL {
 			const float cosY = std::cos(radY);
 
 			return Mat4x4f32(std::array<float, 16u>{
-				cosY, 0, sinY, 0,
-				0,    1, 0,    0,
+				cosY,  0, sinY, 0,
+				0,     1, 0,    0,
 				-sinY, 0, cosY, 0,
-				0, 0, 0, 1
+				0,     0, 0,    1
 			});
 		}
 
@@ -76,9 +76,9 @@ namespace PL {
 
 			return Mat4x4f32(std::array<float, 16u>{
 				cosZ, -sinZ, 0, 0,
-					sinZ, cosZ, 0, 0,
-					0, 0, 1, 0,
-					0, 0, 0, 1
+				sinZ, cosZ,  0, 0,
+				0,    0,     1, 0,
+				0,    0,     0, 1
 			});
 		}
 
@@ -97,9 +97,9 @@ namespace PL {
 		static inline Mat4x4f32 MakeTranslation(const float x, const float y, const float z) noexcept
 		{
 			return Mat4x4f32(std::array<float, 16u>{
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0,
+				1,  0,  0,  0,
+				0,  1,  0,  0,
+				0,  0,  1,  0,
 				-x, -y, -z, 1,
 			});
 		}
@@ -112,10 +112,10 @@ namespace PL {
 		static inline Mat4x4f32 MakePerspective(const float zNear, const float zFar, const float fovRad, const float aspectRatio)
 		{
 			return Mat4x4f32(std::array<float, 16u> {
-				aspectRatio* fovRad, 0, 0, 0,
-				0, fovRad, 0, 0,
-				0, 0, zFar / (zFar - zNear), 1,
-				0, 0, (-zFar * zNear) / (zFar - zNear), 1,
+				aspectRatio* fovRad, 0,      0,                                0,
+				0,                   fovRad, 0,                                0,
+				0,                   0,      zFar / (zFar - zNear),            1,
+				0,                   0,      (-zFar * zNear) / (zFar - zNear), 1,
 			});
 		}
 
@@ -148,18 +148,18 @@ namespace PL {
 		static inline Mat4x4f32 MakeLookAt(const Vec4f32& cameraPosition, const Vec4f32& focalPoint, const Vec4f32& upDirection) noexcept
 		{
 			const Vec4f32 zaxis = Vec4f32::Normalized(focalPoint - cameraPosition);
-			const Vec4f32 xaxis = Vec4f32::Normalized(Vec4f32::CrossProduct(upDirection, zaxis));
-			const Vec4f32 yaxis = Vec4f32::CrossProduct(zaxis, xaxis);
+			const Vec4f32 xaxis = Vec4f32::Normalized(Vec4f32::CrossProduct3D(upDirection, zaxis));
+			const Vec4f32 yaxis = Vec4f32::CrossProduct3D(zaxis, xaxis);
 
-			const float m30 = -Vec4f32::DotProduct(xaxis, cameraPosition);
-			const float m31 = -Vec4f32::DotProduct(yaxis, cameraPosition);
-			const float m32 = -Vec4f32::DotProduct(zaxis, cameraPosition);
+			const float m30 = -Vec4f32::DotProduct4D(xaxis, cameraPosition);
+			const float m31 = -Vec4f32::DotProduct4D(yaxis, cameraPosition);
+			const float m32 = -Vec4f32::DotProduct4D(zaxis, cameraPosition);
 
 			return Mat4x4f32(std::array<float, 16u>{
 				xaxis.x, yaxis.x, zaxis.x, 0,
 				xaxis.y, yaxis.y, zaxis.y, 0,
 				xaxis.z, yaxis.z, zaxis.z, 0,
-				m30, m31, m32, 1
+				m30,     m31,     m32,     1
 			});
 		}
 	}; // class Mat4x4f32
@@ -201,7 +201,7 @@ namespace PL {
 				const Vec4f32 vecA = Vec4f32(matA(r, 0), matA(r, 1), matA(r, 2), matA(r, 3));
 				const Vec4f32 vecB = Vec4f32(matB(0, c), matB(1, c), matB(2, c), matB(3, c));
 
-				matResult(r, c) = Vec4f32::DotProduct(vecA, vecB);
+				matResult(r, c) = Vec4f32::DotProduct4D(vecA, vecB);
 			}
 		}
 
@@ -211,10 +211,10 @@ namespace PL {
 	inline Vec4f32 operator*(const Mat4x4f32& mat, const Vec4f32& vec) noexcept
 	{
 		return Vec4f32(
-			Vec4f32::DotProduct(vec, Vec4f32(mat(0, 0), mat(1, 0), mat(2, 0), mat(3, 0))),
-			Vec4f32::DotProduct(vec, Vec4f32(mat(0, 1), mat(1, 1), mat(2, 1), mat(3, 1))),
-			Vec4f32::DotProduct(vec, Vec4f32(mat(0, 2), mat(1, 2), mat(2, 2), mat(3, 2))),
-			Vec4f32::DotProduct(vec, Vec4f32(mat(0, 3), mat(1, 3), mat(2, 3), mat(3, 3)))
+			Vec4f32::DotProduct4D(vec, Vec4f32(mat(0, 0), mat(1, 0), mat(2, 0), mat(3, 0))),
+			Vec4f32::DotProduct4D(vec, Vec4f32(mat(0, 1), mat(1, 1), mat(2, 1), mat(3, 1))),
+			Vec4f32::DotProduct4D(vec, Vec4f32(mat(0, 2), mat(1, 2), mat(2, 2), mat(3, 2))),
+			Vec4f32::DotProduct4D(vec, Vec4f32(mat(0, 3), mat(1, 3), mat(2, 3), mat(3, 3)))
 		);
 	}
 

@@ -14,17 +14,17 @@
 namespace PL {
 
     template <typename _T, size_t _N>
-	struct VectorComponents {  };
+	struct PointComponents {  };
 
-	template <typename _T> struct VectorComponents<_T, 1u> { _T x; };
-	template <typename _T> struct VectorComponents<_T, 2u> : VectorComponents<_T, 1u> { _T y; };
-	template <typename _T> struct VectorComponents<_T, 3u> : VectorComponents<_T, 2u> { _T z; };
-	template <typename _T> struct VectorComponents<_T, 4u> : VectorComponents<_T, 3u> { _T w; };
+	template <typename _T> struct PointComponents<_T, 1u> { _T x; };
+	template <typename _T> struct PointComponents<_T, 2u> : PointComponents<_T, 1u> { _T y; };
+	template <typename _T> struct PointComponents<_T, 3u> : PointComponents<_T, 2u> { _T z; };
+	template <typename _T> struct PointComponents<_T, 4u> : PointComponents<_T, 3u> { _T w; };
 
-	template <typename _T> using Vec1 = VectorComponents<_T, 1u>;
-	template <typename _T> using Vec2 = VectorComponents<_T, 2u>;
-	template <typename _T> using Vec3 = VectorComponents<_T, 3u>;
-	template <typename _T> using Vec4 = VectorComponents<_T, 4u>;
+	template <typename _T> using Point1 = PointComponents<_T, 1u>;
+	template <typename _T> using Point2 = PointComponents<_T, 2u>;
+	template <typename _T> using Point3 = PointComponents<_T, 3u>;
+	template <typename _T> using Point4 = PointComponents<_T, 4u>;
 
 	struct Vec4f32 {
 		union {
@@ -137,9 +137,25 @@ namespace PL {
 
 		// --- Static Functions ---
 
-		static inline float DotProduct(const Vec4f32& a, const Vec4f32& b) noexcept {
+		static inline float DotProduct2D(const Vec4f32& a, const Vec4f32& b) noexcept {
 #if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
-			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0xFF));
+			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b00111111));
+#else
+			return a.x * b.x + a.y * b.y;
+#endif
+		}
+
+		static inline float DotProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
+			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b01111111));
+#else
+			return a.x * b.x + a.y * b.y + a.z * b.z;
+#endif
+		}
+
+		static inline float DotProduct4D(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
+			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b11111111));
 #else
 			return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 #endif
@@ -149,7 +165,7 @@ namespace PL {
 			return v / v.GetLength();
 		}
 
-		static inline Vec4f32 CrossProduct(const Vec4f32& a, const Vec4f32& b) {
+		static inline Vec4f32 CrossProduct3D(const Vec4f32& a, const Vec4f32& b) {
 			const Vec4f32 tempA1(a.y, a.z, a.x, 0);
 			const Vec4f32 tempB1(b.z, b.x, b.y, 0);
 			const Vec4f32 tempA2(a.z, a.x, a.y, 0);
@@ -157,6 +173,7 @@ namespace PL {
 
 			return tempA1 * tempB1 - tempA2 * tempB2;
 		}
+
 	}; // struct Vec4f32
 
 	inline Vec4f32 operator+(const float& n, const Vec4f32& v) noexcept { return v * n; }

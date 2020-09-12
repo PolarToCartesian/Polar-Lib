@@ -27,10 +27,19 @@ namespace PL {
 
     public:
         Window() = default;
-        Window(const char* title, const std::uint16_t x, const std::uint16_t y, const std::uint16_t width, const std::uint16_t height) noexcept;
+        Window(const char* title, const std::uint16_t width, const std::uint16_t height) noexcept;
 
-        void Show()   const noexcept;
-        void Hide()   const noexcept;
+        inline void Show() const noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+            ShowWindow(this->m_handle, SW_SHOW);
+#endif // __POLAR__TARGET_WINDOWS
+        }
+        inline void Hide() const noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+            ShowWindow(this->m_handle, SW_HIDE);
+#endif // __POLAR__TARGET_WINDOWS
+        }
+
         void Update() noexcept;
 
         inline bool IsRunning() const noexcept { return this->m_bRunning; }
@@ -39,8 +48,15 @@ namespace PL {
         inline HWND GetHandle() const noexcept { return this->m_handle;   }
 #endif // __POLAR__TARGET_WINDOWS
 
-        void Close() noexcept;
-        ~Window()    noexcept { this->Close(); }
+        inline void Close() noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+            CloseWindow(this->m_handle);
+
+            this->m_bRunning = false;
+#endif // __POLAR__TARGET_WINDOWS
+        }
+
+        inline ~Window() noexcept { this->Close(); }
     }; // class Window
 
 }; // namespace PL
