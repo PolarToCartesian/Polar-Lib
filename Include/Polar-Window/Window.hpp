@@ -1,12 +1,15 @@
 #ifndef __POLAR__FILE_WINDOW_HPP
 #define __POLAR__FILE_WINDOW_HPP
 
+#include <Polar-Math/Vector.hpp>
 #include <Polar-Build/Polar-Build.hpp>
 
 #ifdef __POLAR__TARGET_WINDOWS
-    #include <Windows.h>
+#include <Windows.h>
+#include <windowsx.h>
 #endif // __POLAR__TARGET_WINDOWS
 
+#include <array>
 #include <cstdint>
 
 namespace PL {
@@ -18,6 +21,7 @@ namespace PL {
     }; // namespace details
 
     class Window {
+        friend LRESULT CALLBACK ::PL::details::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
     private:
 #ifdef __POLAR__TARGET_WINDOWS
         HWND m_handle = NULL;
@@ -25,7 +29,16 @@ namespace PL {
 
         bool m_bRunning = false;
 
-    public:
+        // Mouse
+        std::int32_t m_wheelDelta = 0;
+        ::PL::Point2<std::uint32_t> m_cursorPosition;
+        bool m_bLeftButton  = false;
+        bool m_bRightButton = false;
+
+        // Keyboard
+        std::array<bool, 0xFE> m_downKeys = { false };
+
+public:
         Window() = default;
         Window(const char* title, const std::uint16_t width, const std::uint16_t height) noexcept;
 
@@ -43,6 +56,19 @@ namespace PL {
         void Update() noexcept;
 
         inline bool IsRunning() const noexcept { return this->m_bRunning; }
+
+        // Mouse
+        inline bool IsLeftMouseButtonDown()  const noexcept { return this->m_bLeftButton;   }
+        inline bool IsLeftMouseButtonUp()    const noexcept { return !this->m_bLeftButton;  }
+        inline bool IsRightMouseButtonDown() const noexcept { return this->m_bRightButton;  }
+        inline bool IsRightMouseButtonUp()   const noexcept { return !this->m_bRightButton; }
+
+        inline std::int32_t                GetMouseWheelDelta() const noexcept { return this->m_wheelDelta;     }
+        inline ::PL::Point2<std::uint32_t> GetCursorPosition()  const noexcept { return this->m_cursorPosition; }
+
+        // Keyboard
+        inline bool IsKeyDown(const char key) const noexcept { return this->m_downKeys[key];  }
+        inline bool IsKeyup  (const char key) const noexcept { return !this->m_downKeys[key]; }
 
 #ifdef __POLAR__TARGET_WINDOWS
         inline HWND GetHandle() const noexcept { return this->m_handle;   }
