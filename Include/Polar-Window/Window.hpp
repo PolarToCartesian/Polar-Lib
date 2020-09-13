@@ -5,9 +5,15 @@
 #include <Polar-Build/Polar-Build.hpp>
 
 #ifdef __POLAR__TARGET_WINDOWS
-#include <Windows.h>
-#include <windowsx.h>
+    #include <Windows.h>
+    #include <windowsx.h>
 #endif // __POLAR__TARGET_WINDOWS
+
+#ifdef __POLAR__TARGET_LINUX
+    #include <X11/Xos.h>
+    #include <X11/Xlib.h>
+    #include <X11/Xutil.h>
+#endif // __POLAR__TARGET_LINUX
 
 #include <array>
 #include <cstdint>
@@ -21,11 +27,20 @@ namespace PL {
     }; // namespace details
 
     class Window {
+#ifdef __POLAR__TARGET_WINDOWS
         friend LRESULT CALLBACK ::PL::details::WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept;
+#endif // __POLAR__TARGET_WINDOWS
     private:
 #ifdef __POLAR__TARGET_WINDOWS
         HWND m_handle = NULL;
 #endif // __POLAR__TARGET_WINDOWS
+
+#ifdef __POLAR__TARGET_LINUX
+        ::Display* m_pDisplayHandle;
+        ::Window   m_handle;
+
+        ::Atom m_deleteMessage;
+#endif // __POLAR__TARGET_LINUX
 
         bool m_bRunning = false;
 
@@ -42,16 +57,8 @@ public:
         Window() = default;
         Window(const char* title, const std::uint16_t width, const std::uint16_t height) noexcept;
 
-        inline void Show() const noexcept {
-#ifdef __POLAR__TARGET_WINDOWS
-            ShowWindow(this->m_handle, SW_SHOW);
-#endif // __POLAR__TARGET_WINDOWS
-        }
-        inline void Hide() const noexcept {
-#ifdef __POLAR__TARGET_WINDOWS
-            ShowWindow(this->m_handle, SW_HIDE);
-#endif // __POLAR__TARGET_WINDOWS
-        }
+        void Show() const noexcept;
+        void Hide() const noexcept;
 
         void Update() noexcept;
 
@@ -74,13 +81,7 @@ public:
         inline HWND GetHandle() const noexcept { return this->m_handle;   }
 #endif // __POLAR__TARGET_WINDOWS
 
-        inline void Close() noexcept {
-#ifdef __POLAR__TARGET_WINDOWS
-            CloseWindow(this->m_handle);
-
-            this->m_bRunning = false;
-#endif // __POLAR__TARGET_WINDOWS
-        }
+        void Close() noexcept;
 
         inline ~Window() noexcept { this->Close(); }
     }; // class Window

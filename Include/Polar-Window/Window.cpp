@@ -5,11 +5,11 @@ namespace PL {
     namespace details {
 #ifdef __POLAR__TARGET_WINDOWS
         LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) noexcept {
-#ifdef __POLAR__TARGET_64_BIT
+	#ifdef __POLAR__TARGET_64_BIT
 			Window* pWindow = reinterpret_cast<Window*>(GetWindowLongPtrA(hwnd, GWLP_USERDATA));
-#else
+	#else
 			Window* pWindow = reinterpret_cast<Window*>(GetWindowLongA(hwnd, GWLP_USERDATA));
-#endif
+	#endif
 
 			if (pWindow != nullptr) {
 				switch (msg) {
@@ -94,24 +94,87 @@ namespace PL {
 
 			if (this->m_handle == NULL)
 				return;
-			
-			this->m_bRunning = true;
 		}
+#endif // __POLAR__TARGET_WINDOWS
+
+#ifdef __POLAR__TARGET_LINUX
+		// Fetch Display
+		this->m_pDisplayHandle = ::XOpenDisplay(0);
+
+		// Create Window
+		this->m_handle = ::XCreateSimpleWindow(this->m_pDisplayHandle, DefaultRootWindow(this->m_pDisplayHandle),
+											   0, 0, width, height, 0,
+											   BlackPixel(this->m_pDisplayHandle, 0), WhitePixel(this->m_pDisplayHandle, 0));
+
+		// Receive WM_DELETE_WINDOW messages
+		this->m_deleteMessage = ::XInternAtom(this->m_pDisplayHandle, "WM_DELETE_WINDOW", False);
+		::XSetWMProtocols(this->m_pDisplayHandle, this->m_handle, &this->m_deleteMessage, 1);
+
+		// Set Title
+		::XSetStandardProperties(this->m_pDisplayHandle, this->m_handle, title, title, None, NULL, 0, NULL);
+
+		// Select Input Masks
+		constexpr long xEventMasks = ExposureMask      | // Window
+									 PointerMotionMask | ButtonPressMask | ButtonReleaseMask | // Mouse
+									 KeyPressMask	   | KeyReleaseMask; // Keyboard
+
+		::XSelectInput(this->m_pDisplayHandle, this->m_handle, xEventMasks);
+#endif // __POLAR__TARGET_LINUX
+
+		this->m_bRunning = true;
 
 		// Show Window
 		this->Show();
 
+#ifdef __POLAR__TARGET_WINDOWS
 		// Step 4 : Set Window Pointer
 		{
-#ifdef __POLAR__TARGET_64_BIT
+	#ifdef __POLAR__TARGET_64_BIT
 			SetWindowLongPtrA(this->m_handle, GWLP_USERDATA, (LONG_PTR)this);
-#else
+	#else
 			SetWindowLongA(this->m_handle, GWLP_USERDATA, (LONG)this);
-#endif
+	#endif
 		}
 
 #endif // __POLAR__TARGET_WINDOWS
     }
+
+	void Window::Show() const noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+		ShowWindow(this->m_handle, SW_SHOW);
+#endif // __POLAR__TARGET_WINDOWS
+#ifdef __POLAR__TARGET_LINUX
+		::XMapWindow(this->m_pDisplayHandle, this->m_handle);
+		::XFlush(this->m_pDisplayHandle);
+#endif // __POLAR__TARGET_LINUX
+	}
+
+	void Window::Hide() const noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+		ShowWindow(this->m_handle, SW_HIDE);
+#endif // __POLAR__TARGET_WINDOWS
+#ifdef __POLAR__TARGET_LINUX
+		::XUnmapWindow(this->m_pDisplayHandle, this->m_handle);
+		::XFlush(this->m_pDisplayHandle);
+#endif // __POLAR__TARGET_LINUX
+	}
+
+	void Window::Close() noexcept {
+#ifdef __POLAR__TARGET_WINDOWS
+		CloseWindow(this->m_handle);
+
+		this->m_handle = NULL;
+#endif // __POLAR__TARGET_WINDOWS
+#ifdef __POLAR__TARGET_LINUX
+		// Destroy Window & Close Display
+		::XDestroyWindow(this->m_pDisplayHandle, this->m_handle);
+		::XCloseDisplay(this->m_pDisplayHandle);
+
+		this->m_pDisplayHandle = nullptr;
+#endif // __POLAR__TARGET_LINUX
+
+		this->m_bRunning = false;
+	}
 
     void Window::Update() noexcept {
 		this->m_wheelDelta = 0;
