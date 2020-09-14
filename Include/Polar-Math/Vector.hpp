@@ -23,6 +23,30 @@ namespace PL {
 	template <typename _T> struct PointComponents<_T, 3u> : PointComponents<_T, 2u> { _T z; };
 	template <typename _T> struct PointComponents<_T, 4u> : PointComponents<_T, 3u> { _T w; };
 
+	template <typename _T>
+	std::ostream& operator<<(std::ostream& stream, const PointComponents<_T, 1u>& pc) noexcept {
+		stream << '(' << pc.x << ')';
+		return stream;
+	}
+
+	template <typename _T>
+	std::ostream& operator<<(std::ostream& stream, const PointComponents<_T, 2u>& pc) noexcept {
+		stream << '(' << pc.x << ", " << pc.y << ')';
+		return stream;
+	}
+
+	template <typename _T>
+	std::ostream& operator<<(std::ostream& stream, const PointComponents<_T, 3u>& pc) noexcept {
+		stream << '(' << pc.x << ", " << pc.y << ", " << pc.z << ')';
+		return stream;
+	}
+
+	template <typename _T>
+	std::ostream& operator<<(std::ostream& stream, const PointComponents<_T, 4u>& pc) noexcept {
+		stream << '(' << pc.x << ", " << pc.y << ", " << pc.z << pc.w << ')';
+		return stream;
+	}
+
 	template <typename _T> using Point1 = PointComponents<_T, 1u>;
 	template <typename _T> using Point2 = PointComponents<_T, 2u>;
 	template <typename _T> using Point3 = PointComponents<_T, 3u>;
