@@ -4,6 +4,7 @@
 #include <cmath>
 #include <math.h>
 #include <ostream>
+#include <algorithm>
 
 #if !defined(__POLAR__NO_SSE)
     #include <xmmintrin.h>
@@ -160,6 +161,13 @@ namespace PL {
 		inline float GetLength() const noexcept { return sqrtf(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
 
 		inline void  Normalize() noexcept { this->operator/=(this->GetLength()); }
+
+		inline void Clamp(const float min, const float max) noexcept {
+			this->x = std::clamp(this->x, min, max);
+			this->y = std::clamp(this->y, min, max);
+			this->z = std::clamp(this->z, min, max);
+			this->w = std::clamp(this->w, min, max);
+		}
 
 		// --- Static Functions ---
 
