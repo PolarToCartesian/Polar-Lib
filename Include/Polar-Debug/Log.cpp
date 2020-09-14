@@ -3,7 +3,7 @@
 namespace PL {
 
     template <typename T, typename ...Args>
-	static void __Print(const LOG_TYPE logType, const T& message0, Args... args) noexcept {
+	void LOG::__Print(const LOG_TYPE logType, const T& message0, Args... args) noexcept {
 #ifdef __POLAR__TARGET_WINDOWS
 
 		WORD textAttributes;
@@ -50,13 +50,15 @@ namespace PL {
 			break;
 		}
 
-		std::cout << message << '\n' << "\x1B[0m";
+		std::cout << message0;
+		(std::cout << ... << args);
+		std::cout << "\x1B[0m";
 
 #endif
 	}
 
     template <typename T, typename ...Args>
-	static void Print(const LOG_TYPE logType,   const T& message0, Args... args) noexcept {
+	void LOG::Print(const LOG_TYPE logType,   const T& message0, Args... args) noexcept {
 		// Lock The Mutex
 		std::lock_guard<std::mutex> lock(LOG::m_sPrintMutex);
 
@@ -64,7 +66,7 @@ namespace PL {
 	}
 
 	template <typename T, typename ...Args>
-	static void Println(const LOG_TYPE logType, const T& message0, Args... args) noexcept {
+	void LOG::Println(const LOG_TYPE logType, const T& message0, Args... args) noexcept {
 		// Lock The Mutex
 		std::lock_guard<std::mutex> lock(LOG::m_sPrintMutex);
 
