@@ -186,6 +186,79 @@ namespace PL {
 			DispatchMessageA(&msg);
 		}
 #endif // __POLAR__TARGET_WINDOWS
+#ifdef __POLAR__TARGET_LINUX
+		::XEvent xEvent;
+		while (XPending(this->m_pDisplayHandle))
+		{
+			XNextEvent(this->m_pDisplayHandle, &xEvent);
+
+			if (XFilterEvent(&xEvent, this->m_handle))
+				continue;
+
+			switch (xEvent.type) {
+				// Window Events
+			case DestroyNotify:
+				this->Close();
+				return;
+
+			case ClientMessage:
+				if ((::Atom)xEvent.xclient.data.l[0] == this->m_deleteMessage) {
+					this->Close();
+					return;
+				}
+
+				break;
+				// Mouse Events
+			case ButtonPress:
+				switch (xEvent.xbutton.button) {
+				case Button1:
+					this->m_bLeftButton = true;
+					break;
+				case Button3:
+					this->m_bRightButton = true;
+					break;
+				case Button4:
+					this->m_wheelDelta += xEvent.xbutton.y;
+					break;
+				case Button5:
+					this->m_wheelDelta -= xEvent.xbutton.y;
+					break;
+				}
+
+				this->m_cursorPosition = { static_cast<uint16_t>(xEvent.xmotion.x),
+									       static_cast<uint16_t>(xEvent.xmotion.y) };
+
+				break;
+			case ButtonRelease:
+				switch (xEvent.xbutton.button) {
+				case 1:
+					this->m_bLeftButton = false;
+					break;
+				case 3:
+					this->m_bRightButton = false;
+					break;
+				}
+
+				this->m_cursorPosition = { static_cast<uint16_t>(xEvent.xmotion.x),
+									       static_cast<uint16_t>(xEvent.xmotion.y) };
+
+				break;
+			case MotionNotify:
+				this->m_cursorPosition = { static_cast<uint16_t>(xEvent.xmotion.x),
+									       static_cast<uint16_t>(xEvent.xmotion.y) };
+
+				break;
+
+				// Keyboard Events
+			case KeyPress:
+				this->m_downKeys[std::toupper(XLookupKeysym(&xEvent.xkey, 0))] = true;
+				break;
+			case KeyRelease:
+				this->m_downKeys[std::toupper(XLookupKeysym(&xEvent.xkey, 0))] = false;
+				break;
+			}
+		}
+#endif // __POLAR__TARGET_LINUX
 	}
 
 }; // namespace PL
