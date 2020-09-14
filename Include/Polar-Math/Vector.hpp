@@ -1,6 +1,8 @@
 #ifndef __POLAR__FILE_VECTOR_HPP
 #define __POLAR__FILE_VECTOR_HPP
 
+#include <cmath>
+#include <math.h>
 #include <ostream>
 
 #if !defined(__POLAR__NO_SSE)
@@ -126,12 +128,12 @@ namespace PL {
 #endif
 		}
 
-		inline Vec4f32 operator+=(const float& n) noexcept { *this = this->operator+(n); }
-		inline Vec4f32 operator-=(const float& n) noexcept { *this = this->operator-(n); }
-		inline Vec4f32 operator*=(const float& n) noexcept { *this = this->operator*(n); }
-		inline Vec4f32 operator/=(const float& n) noexcept { *this = this->operator/(n); }
+		inline void operator+=(const float& n) noexcept { *this = this->operator+(n); }
+		inline void operator-=(const float& n) noexcept { *this = this->operator-(n); }
+		inline void operator*=(const float& n) noexcept { *this = this->operator*(n); }
+		inline void operator/=(const float& n) noexcept { *this = this->operator/(n); }
 
-		inline float GetLength() const noexcept { return std::sqrtf(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
+		inline float GetLength() const noexcept { return sqrtf(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
 
 		inline void  Normalize() noexcept { this->operator/=(this->GetLength()); }
 
