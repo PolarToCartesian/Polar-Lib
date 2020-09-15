@@ -195,6 +195,10 @@ namespace PL {
 #endif
 		}
 
+		static inline Vec4f32 Reflected3D(const Vec4f32 &in, const Vec4f32 &normal) noexcept {
+  			return in - normal * 2 * DotProduct3D(in, normal);
+		}
+
 		static inline Vec4f32 Normalized(const Vec4f32& v) noexcept {
 			return v / v.GetLength();
 		}
