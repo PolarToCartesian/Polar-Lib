@@ -61,106 +61,123 @@ namespace PL {
 
 #if !defined(__POLAR__NO_SSE)
 			__m128 reg;
-#endif
-		};
+#endif // !__POLAR__NO_SSE
+		}; // anonymous union
 
 #if !defined(__POLAR__NO_SSE)
-		inline Vec4f32(const __m128& reg) { this->Set(reg); }
-#endif
+		inline Vec4f32(const __m128& i) { this->Set(i); }
+#endif // !__POLAR__NO_SSE
 
-		inline Vec4f32(const float x = 0, const float y = 0, const float z = 0, const float w = 0) noexcept {
+		inline Vec4f32(const float x = 0.f, const float y = 0.f, const float z = 0.f, const float w = 0.f) noexcept {
 			this->Set(x, y, z, w);
 		}
 
 #if !defined(__POLAR__NO_SSE)
-		inline void Set(const __m128& reg) noexcept { this->reg = reg; }
-#endif
-
-		inline void Set(const float x = 0, const float y = 0, const float z = 0, const float w = 0) noexcept {
+		inline void Set(const __m128& i) noexcept {
+			this->reg = i;
+		}
+#endif // !__POLAR__NO_SSE
+		inline void Set (const float x, const float y, const float z, const float w) noexcept {
 #if !defined(__POLAR__NO_SSE)
 			this->reg = _mm_set_ps(w, z, y, x);
 #else
-			this->x = x; this->y = y; this->z = z; this->w = w;
+			this->x = x; this->y = y;
+			this->z = z; this->w = w;
 #endif
 		}
 
-		inline Vec4f32 operator+(const Vec4f32& o) const noexcept {
+		inline void Set1(const float n) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_add_ps(this->reg, o.reg));
+			this->reg = _mm_set_ps1(n);
 #else
-			return Vec4f32(this->x + o.x, this->y + o.y, this->z + o.z, this->w + o.w);
+			this->Set(n, n, n, n);
 #endif
 		}
 
-		inline Vec4f32 operator-(const Vec4f32& o) const noexcept {
+		inline Vec4f32& operator+=(const Vec4f32& o) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_sub_ps(this->reg, o.reg));
+			this->reg = _mm_add_ps(this->reg, o.reg);
 #else
-			return Vec4f32(this->x - o.x, this->y - o.y, this->z - o.z, this->w - o.w);
+			this->x += o.x; this->y += o.y;
+			this->z += o.z; this->w += o.w;
 #endif
+
+			return *this;
 		}
 
-		inline Vec4f32 operator*(const Vec4f32& o) const noexcept {
+		inline Vec4f32& operator-=(const Vec4f32& o) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_mul_ps(this->reg, o.reg));
+			this->reg = _mm_sub_ps(this->reg, o.reg);
 #else
-			return Vec4f32(this->x * o.x, this->y * o.y, this->z * o.z, this->w * o.w);
+			this->x -= o.x; this->y -= o.y;
+			this->z -= o.z; this->w -= o.w;
 #endif
+
+			return *this;
 		}
 
-		inline Vec4f32 operator/(const Vec4f32& o) const noexcept {
+		inline Vec4f32& operator*=(const Vec4f32& o) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_div_ps(this->reg, o.reg));
+			this->reg = _mm_mul_ps(this->reg, o.reg);
 #else
-			return Vec4f32(this->x / o.x, this->y / o.y, this->z / o.z, this->w / o.w);
+			this->x *= o.x; this->y *= o.y;
+			this->z *= o.z; this->w *= o.w;
 #endif
+
+			return *this;
 		}
 
-		inline void operator+=(const Vec4f32& o) noexcept { *this = this->operator+(o); }
-		inline void operator-=(const Vec4f32& o) noexcept { *this = this->operator-(o); }
-		inline void operator*=(const Vec4f32& o) noexcept { *this = this->operator*(o); }
-		inline void operator/=(const Vec4f32& o) noexcept { *this = this->operator/(o); }
-
-		inline Vec4f32 operator+(const float& n) noexcept {
+		inline Vec4f32& operator/=(const Vec4f32& o) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_add_ps(this->reg, _mm_set_ps1(n)));
+			this->reg = _mm_mul_ps(this->reg, o.reg);
 #else
-			return (*this) + Vec4f32{ n, n, n, n };
+			this->x /= o.x; this->y /= o.y;
+			this->z /= o.z; this->w /= o.w;
 #endif
+
+			return *this;
 		}
 
-		inline Vec4f32 operator-(const float& n) noexcept {
+		inline Vec4f32& operator+=(const float n) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_sub_ps(this->reg, _mm_set_ps1(n)));
+			this->reg = _mm_add_ps(this->reg, _mm_set_ps1(n));
+			return *this;
 #else
-			return (*this) - Vec4f32{ n, n, n, n };
+			return this->operator+=(n, n, n, n);
 #endif
 		}
 
-		inline Vec4f32 operator*(const float& n) noexcept {
+		inline Vec4f32& operator-=(const float n) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_mul_ps(this->reg, _mm_set_ps1(n)));
+			this->reg = _mm_sub_ps(this->reg, _mm_set_ps1(n));
+			return *this;
 #else
-			return (*this) * Vec4f32{n, n, n, n};
+			return this->operator-=(n, n, n, n);
 #endif
 		}
 
-		inline Vec4f32 operator/(const float& n) noexcept {
+		inline Vec4f32& operator*=(const float n) noexcept {
 #if !defined(__POLAR__NO_SSE)
-			return Vec4f32(_mm_div_ps(this->reg, _mm_set_ps1(n)));
+			this->reg = _mm_mul_ps(this->reg, _mm_set_ps1(n));
+			return *this;
 #else
-			return (*this) / Vec4f32 { n, n, n, n };
+			return this->operator*=(n, n, n, n);
 #endif
 		}
 
-		inline void operator+=(const float& n) noexcept { *this = this->operator+(n); }
-		inline void operator-=(const float& n) noexcept { *this = this->operator-(n); }
-		inline void operator*=(const float& n) noexcept { *this = this->operator*(n); }
-		inline void operator/=(const float& n) noexcept { *this = this->operator/(n); }
+		inline Vec4f32& operator/=(const float n) noexcept {
+#if !defined(__POLAR__NO_SSE)
+			this->reg = _mm_div_ps(this->reg, _mm_set_ps1(n));
+			return *this;
+#else
+			return this->operator/=(n, n, n, n);
+#endif
+		}
 
-		inline float GetLength() const noexcept { return sqrtf(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w); }
-
-		inline void  Normalize() noexcept { this->operator/=(this->GetLength()); }
+		inline float GetLength() const noexcept {
+			return std::sqrtf(this->x * this->x + this->y * this->y +
+							  this->z * this->z + this->w * this->w);
+		}
 
 		inline void Clamp(const float min, const float max) noexcept {
 			this->x = std::clamp(this->x, min, max);
@@ -169,55 +186,86 @@ namespace PL {
 			this->w = std::clamp(this->w, min, max);
 		}
 
-		// --- Static Functions ---
-
-		static inline float DotProduct2D(const Vec4f32& a, const Vec4f32& b) noexcept {
-#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
-			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b00111111));
-#else
-			return a.x * b.x + a.y * b.y;
-#endif
+		static inline Vec4f32 Clamped(Vec4f32 v, const float min, const float max) {
+			v.Clamp(min, max);
+			return v;
 		}
 
-		static inline float DotProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept {
-#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
-			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b01111111));
-#else
-			return a.x * b.x + a.y * b.y + a.z * b.z;
-#endif
-		}
+		inline void Normalize() noexcept;
 
-		static inline float DotProduct4D(const Vec4f32& a, const Vec4f32& b) noexcept {
+		static inline Vec4f32 Normalized(Vec4f32 v) noexcept;
+
+		static inline float DotProduct2D(const Vec4f32& a, const Vec4f32& b) noexcept;
+		static inline float DotProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept;
+		static inline float DotProduct4D(const Vec4f32& a, const Vec4f32& b) noexcept;
+
+		static inline Vec4f32 CrossProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept;
+		static inline Vec4f32 Reflected3D   (const Vec4f32& in, const Vec4f32& normal) noexcept;
+
+#if !defined(__POLAR__NO_SSE)
+		inline operator __m128() const noexcept { return reg; }
+#endif  // !__POLAR__NO_SSE
+
+	}; // struct Vec4f32
+
+	inline Vec4f32 operator+(Vec4f32 a, const Vec4f32& b) noexcept { a += b; return a; }
+	inline Vec4f32 operator-(Vec4f32 a, const Vec4f32& b) noexcept { a -= b; return a; }
+	inline Vec4f32 operator*(Vec4f32 a, const Vec4f32& b) noexcept { a *= b; return a; }
+	inline Vec4f32 operator/(Vec4f32 a, const Vec4f32& b) noexcept { a /= b; return a; }
+
+	inline Vec4f32 operator+(Vec4f32 a, const float n) noexcept { a += n; return a; }
+	inline Vec4f32 operator-(Vec4f32 a, const float n) noexcept { a -= n; return a; }
+	inline Vec4f32 operator*(Vec4f32 a, const float n) noexcept { a *= n; return a; }
+	inline Vec4f32 operator/(Vec4f32 a, const float n) noexcept { a /= n; return a; }
+
+	inline Vec4f32 operator+(const float n, Vec4f32 a) noexcept { return a + n; }
+	inline Vec4f32 operator-(const float n, Vec4f32 a) noexcept { return a - n; }
+	inline Vec4f32 operator*(const float n, Vec4f32 a) noexcept { return a * n; }
+	inline Vec4f32 operator/(const float n, Vec4f32 a) noexcept { return a / n; }
+
+	inline void Vec4f32::Normalize() noexcept { (*this) /= this->GetLength(); }
+
+	inline Vec4f32 Vec4f32::Normalized(Vec4f32 v) noexcept {
+		v.Normalize();
+		return v;
+	}
+
+	inline float Vec4f32::DotProduct2D(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
+		return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b00111111));
+#else
+		return a.x * b.x + a.y * b.y;
+#endif
+	}
+
+	inline float Vec4f32::DotProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
+		return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b01111111));
+#else
+		return a.x * b.x + a.y * b.y + a.z * b.z;
+#endif
+	}
+
+	inline float Vec4f32::DotProduct4D(const Vec4f32& a, const Vec4f32& b) noexcept {
 #if !defined(__POLAR__NO_SSE) && !defined(__POLAR__NO_SSE_4_1)
 			return _mm_cvtss_f32(_mm_dp_ps(a.reg, b.reg, 0b11111111));
 #else
 			return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 #endif
-		}
+	}
 
-		static inline Vec4f32 Reflected3D(const Vec4f32 &in, const Vec4f32 &normal) noexcept {
-  			return in - normal * 2 * DotProduct3D(in, normal);
-		}
+	inline Vec4f32 Vec4f32::CrossProduct3D(const Vec4f32& a, const Vec4f32& b) noexcept {
+		const Vec4f32 tempA1(a.y, a.z, a.x, 0);
+		const Vec4f32 tempB1(b.z, b.x, b.y, 0);
+		const Vec4f32 tempA2(a.z, a.x, a.y, 0);
+		const Vec4f32 tempB2(b.y, b.z, b.x, 0);
 
-		static inline Vec4f32 Normalized(const Vec4f32& v) noexcept {
-			return v / v.GetLength();
-		}
+		return tempA1 * tempB1 - tempA2 * tempB2;
+	}
 
-		static inline Vec4f32 CrossProduct3D(const Vec4f32& a, const Vec4f32& b) {
-			const Vec4f32 tempA1(a.y, a.z, a.x, 0);
-			const Vec4f32 tempB1(b.z, b.x, b.y, 0);
-			const Vec4f32 tempA2(a.z, a.x, a.y, 0);
-			const Vec4f32 tempB2(b.y, b.z, b.x, 0);
-
-			return tempA1 * tempB1 - tempA2 * tempB2;
-		}
-
-	}; // struct Vec4f32
-
-	inline Vec4f32 operator+(const float& n, const Vec4f32& v) noexcept { return v * n; }
-	inline Vec4f32 operator-(const float& n, const Vec4f32& v) noexcept { return v * n; }
-	inline Vec4f32 operator*(const float& n, const Vec4f32& v) noexcept { return v * n; }
-	inline Vec4f32 operator/(const float& n, const Vec4f32& v) noexcept { return v * n; }
+	inline Vec4f32 Vec4f32::Reflected3D(const Vec4f32& in, const Vec4f32& normal) noexcept {
+			return in - normal * 2 * Vec4f32::DotProduct3D(in, normal);
+	}
 
 	inline std::ostream& operator<<(std::ostream& stream, const Vec4f32& v) noexcept {
 		stream << '(' << v.x << ", " << v.y << ", " << v.z << ", " << v.w << ')';
