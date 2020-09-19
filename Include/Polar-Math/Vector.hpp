@@ -53,6 +53,11 @@ namespace PL {
 	template <typename _T> using Point3 = PointComponents<_T, 3u>;
 	template <typename _T> using Point4 = PointComponents<_T, 4u>;
 
+	template <typename _T> using Vec1 = PointComponents<_T, 1u>;
+	template <typename _T> using Vec2 = PointComponents<_T, 2u>;
+	template <typename _T> using Vec3 = PointComponents<_T, 3u>;
+	template <typename _T> using Vec4 = PointComponents<_T, 4u>;
+
 	struct Vec4f32 {
 		union {
 			struct {
