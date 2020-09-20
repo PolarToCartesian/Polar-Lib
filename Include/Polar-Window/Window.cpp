@@ -17,10 +17,14 @@ namespace PL {
 				case WM_DESTROY:
 					pWindow->Close();
 					return 0;
+				case WM_SIZE:
+					pWindow->m_clientWidth  = GET_X_LPARAM(lParam);
+					pWindow->m_clientHeight = GET_Y_LPARAM(lParam);
+					return 0;
 				// Mouse Events
 				case WM_MOUSEMOVE:
 					pWindow->m_cursorPosition = { static_cast<std::uint16_t>(GET_X_LPARAM(lParam)),
-											   static_cast<std::uint16_t>(GET_Y_LPARAM(lParam)) };
+											      static_cast<std::uint16_t>(GET_Y_LPARAM(lParam)) };
 
 					return 0;
 				case WM_LBUTTONDOWN:
@@ -114,14 +118,16 @@ namespace PL {
 		::XSetStandardProperties(this->m_pDisplayHandle, this->m_handle, title, title, None, NULL, 0, NULL);
 
 		// Select Input Masks
-		constexpr long xEventMasks = ExposureMask      | // Window
-									 PointerMotionMask | ButtonPressMask | ButtonReleaseMask | // Mouse
-									 KeyPressMask	   | KeyReleaseMask; // Keyboard
+		constexpr long xEventMasks = ExposureMask      | StructureNotifyMask					   // Window
+									 PointerMotionMask | ButtonPressMask     | ButtonReleaseMask | // Mouse
+									 KeyPressMask	   | KeyReleaseMask;						   // Keyboard
 
 		::XSelectInput(this->m_pDisplayHandle, this->m_handle, xEventMasks);
 #endif // __POLAR__TARGET_LINUX
 
-		this->m_bRunning = true;
+		this->m_bRunning     = true;
+		this->m_clientWidth  = width;
+		this->m_clientHeight = height;
 
 		// Show Window
 		this->Show();
@@ -179,6 +185,8 @@ namespace PL {
     void Window::Update() noexcept {
 		this->m_wheelDelta = 0;
 
+		const ::PL::details::WindowState prevState = *reinterpret_cast<::PL::details::WindowState*>(this);
+
 #ifdef __POLAR__TARGET_WINDOWS
 		MSG msg = { };
 		while (PeekMessageA(&msg, this->m_handle, 0, 0, PM_REMOVE) > 0) {
@@ -200,6 +208,11 @@ namespace PL {
 			case DestroyNotify:
 				this->Close();
 				return;
+
+			case ConfigureNotify:
+				this->m_clientWidth  = xEvent.xconfigure.width;
+				this->m_clientHeight = xEvent.xconfigure.height;
+				break;
 
 			case ClientMessage:
 				if ((::Atom)xEvent.xclient.data.l[0] == this->m_deleteMessage) {
@@ -259,6 +272,20 @@ namespace PL {
 			}
 		}
 #endif // __POLAR__TARGET_LINUX
+
+		if (this->m_clientDims != prevState.m_clientDims) {
+			for (auto& functor : this->m_resizeFunctors)
+				functor(this->m_clientDims);
+		}
+
+		if (this->m_cursorPosition != prevState.m_cursorPosition) {
+			for (auto& functor : this->m_mouseMoveFunctors) {
+				Vec2<std::int16_t> delta = this->m_cursorPosition;
+				delta = delta - prevState.m_cursorPosition;
+
+				functor(this->m_cursorPosition, delta);
+			}
+		}
 	}
 
 }; // namespace PL
