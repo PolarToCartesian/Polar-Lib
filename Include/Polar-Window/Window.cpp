@@ -118,7 +118,7 @@ namespace PL {
 		::XSetStandardProperties(this->m_pDisplayHandle, this->m_handle, title, title, None, NULL, 0, NULL);
 
 		// Select Input Masks
-		constexpr long xEventMasks = ExposureMask      | StructureNotifyMask					   // Window
+		constexpr long xEventMasks = ExposureMask      | StructureNotifyMask |					   // Window
 									 PointerMotionMask | ButtonPressMask     | ButtonReleaseMask | // Mouse
 									 KeyPressMask	   | KeyReleaseMask;						   // Keyboard
 

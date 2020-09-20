@@ -4,6 +4,7 @@
 #include <cmath>
 #include <math.h>
 #include <ostream>
+#include <cstring>
 #include <algorithm>
 
 #if !defined(__POLAR__NO_SSE)
@@ -316,7 +317,7 @@ namespace PL {
 		}
 
 		inline float GetLength() const noexcept {
-			return std::sqrtf(this->x * this->x + this->y * this->y +
+			return sqrtf(this->x * this->x + this->y * this->y +
 							  this->z * this->z + this->w * this->w);
 		}
 
