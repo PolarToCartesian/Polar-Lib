@@ -281,7 +281,7 @@ namespace PL {
 		if (this->m_cursorPosition != prevState.m_cursorPosition) {
 			for (auto& functor : this->m_mouseMoveFunctors) {
 				Vec2<std::int16_t> delta = this->m_cursorPosition;
-				delta = delta - prevState.m_cursorPosition;
+				delta -= prevState.m_cursorPosition;
 
 				functor(this->m_cursorPosition, delta);
 			}

@@ -29,28 +29,28 @@ PointComponents(const PointComponents<_U, _N>& o) {																				 \
 template <typename _U>																											 \
 PointComponents<_T, _N>& operator+=(const PointComponents<_U, _N>& o) noexcept {												 \
 	size_t index = 0u;																											 \
-	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x + o.arr[index++] });		 \
+	std::transform(this->arr.begin(), this->arr.end(), this->arr.begin(), [&o, &index](const _T& x) { return x + o.arr[index++]; });		 \
 	return *this;																												 \
 }																																 \
 																																 \
 template <typename _U>																											 \
 PointComponents<_T, _N>& operator-=(const PointComponents<_U, _N>& o) noexcept {												 \
 	size_t index = 0u;																											 \
-	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x - o.arr[index++] });		 \
+	std::transform(this->arr.begin(), this->arr.end(), this->arr.begin(), [&o, &index](const _T& x) { return x - o.arr[index++]; });		 \
 	return *this;																												 \
 }																																 \
 																																 \
 template <typename _U>																											 \
 PointComponents<_T, _N>& operator*=(const PointComponents<_U, _N>& o) noexcept {												 \
 	size_t index = 0u;																											 \
-	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x * o.arr[index++] });		 \
+	std::transform(this->arr.begin(), this->arr.end(), this->arr.begin(), [&o, &index](const _T& x) { return x * o.arr[index++]; });		 \
 	return *this;																												 \
 }																																 \
 																																 \
 template <typename _U>																											 \
 PointComponents<_T, _N>& operator/=(const PointComponents<_U, _N>& o) noexcept {												 \
 	size_t index = 0u;																											 \
-	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x / o.arr[index++] });		 \
+	std::transform(this->arr.begin(), this->arr.end(), this->arr.begin(), [&o, &index](const _T& x) { return x / o.arr[index++]; });		 \
 	return *this;																												 \
 }																																 \
 
