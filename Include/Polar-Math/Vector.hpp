@@ -14,15 +14,161 @@
     #include <smmintrin.h>
 #endif
 
+#define __POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS(_N)																	 \
+PointComponents() {  }																											 \
+																																 \
+PointComponents(const std::initializer_list<_T>& il) {																			 \
+	std::memcpy(this->arr.data(), il.begin(), sizeof(_T) * std::max((size_t)_N, il.size()));									 \
+}																																 \
+																																 \
+template <typename _U>																											 \
+PointComponents(const PointComponents<_U, _N>& o) {																				 \
+	std::memcpy(this->arr.data(), o.arr.data(), sizeof(_T) * _N);																 \
+}																																 \
+																																 \
+template <typename _U>																											 \
+PointComponents<_T, _N>& operator+=(const PointComponents<_U, _N>& o) noexcept {												 \
+	size_t index = 0u;																											 \
+	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x + o.arr[index++] });		 \
+	return *this;																												 \
+}																																 \
+																																 \
+template <typename _U>																											 \
+PointComponents<_T, _N>& operator-=(const PointComponents<_U, _N>& o) noexcept {												 \
+	size_t index = 0u;																											 \
+	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x - o.arr[index++] });		 \
+	return *this;																												 \
+}																																 \
+																																 \
+template <typename _U>																											 \
+PointComponents<_T, _N>& operator*=(const PointComponents<_U, _N>& o) noexcept {												 \
+	size_t index = 0u;																											 \
+	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x * o.arr[index++] });		 \
+	return *this;																												 \
+}																																 \
+																																 \
+template <typename _U>																											 \
+PointComponents<_T, _N>& operator/=(const PointComponents<_U, _N>& o) noexcept {												 \
+	size_t index = 0u;																											 \
+	std::transform(this->arr.begin(), this->arr.end(), o.arr.begin(), [&index](const _U& x) { return x / o.arr[index++] });		 \
+	return *this;																												 \
+}																																 \
+
 namespace PL {
 
     template <typename _T, size_t _N>
 	struct PointComponents {  };
 
-	template <typename _T> struct PointComponents<_T, 1u> { _T x; };
-	template <typename _T> struct PointComponents<_T, 2u> : PointComponents<_T, 1u> { _T y; };
-	template <typename _T> struct PointComponents<_T, 3u> : PointComponents<_T, 2u> { _T z; };
-	template <typename _T> struct PointComponents<_T, 4u> : PointComponents<_T, 3u> { _T w; };
+	template <typename _T, size_t _N> using Point = PointComponents<_T, _N>;
+	template <typename _T, size_t _N> using Vec   = PointComponents<_T, _N>;
+
+	template <typename _T> using Point1 = PointComponents<_T, 1u>;
+	template <typename _T> using Point2 = PointComponents<_T, 2u>;
+	template <typename _T> using Point3 = PointComponents<_T, 3u>;
+	template <typename _T> using Point4 = PointComponents<_T, 4u>;
+
+	template <typename _T> using Vec1 = PointComponents<_T, 1u>;
+	template <typename _T> using Vec2 = PointComponents<_T, 2u>;
+	template <typename _T> using Vec3 = PointComponents<_T, 3u>;
+	template <typename _T> using Vec4 = PointComponents<_T, 4u>;
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator+(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x + b.x), _N>;
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator-(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x - b.x), _N>;
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator*(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x * b.x), _N>;
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator/(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x / b.x), _N>;
+
+	template <typename _T> struct PointComponents<_T, 1u> {
+		union {
+			struct { _T x; };
+			std::array<_T, 1u> arr;
+		};
+
+		__POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS(1u)
+	}; // struct PointComponents<_T, 1u>
+
+	template <typename _T> struct PointComponents<_T, 2u> {
+		union {
+			struct { _T x, y; };
+			std::array<_T, 2u> arr;
+		};
+
+		__POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS(2u)
+	}; // struct PointComponents<_T, 2u>
+
+	template <typename _T> struct PointComponents<_T, 3u> {
+		union {
+			struct { _T x, y, z; };
+			std::array<_T, 3u> arr;
+		};
+
+		__POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS(3u)
+	}; // struct PointComponents<_T, 3u>
+
+	template <typename _T> struct PointComponents<_T, 4u> {
+		union {
+			_T x, y, z, w;
+			std::array<_T, 4u> arr;
+		};
+
+		__POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS(4u)
+	}; // struct PointComponents<_T, 4u> 
+
+	template <typename _T, typename _U, size_t _N>
+	inline bool operator==(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept {
+		if constexpr (!std::is_same_v<_T, _U>) {
+			return false;
+		} else {
+			return std::memcmp(a.arr.data(), b.arr.data(), _N * sizeof(_T)) == 0;
+		}
+	}
+
+	template <typename _T, typename _U, size_t _N>
+	inline bool operator!=(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept {
+		if constexpr (std::is_same_v<_T, _U>) {
+			return true;
+		} else {
+			return std::memcmp(a.arr.data(), b.arr.data(), _N * sizeof(_T)) != 0;
+		}
+	}
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator+(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x + b.x), _N> {
+		size_t index = 0u;
+		Vec<decltype(a.x + b.x), _N> r(a);
+		std::transform(a.arr.begin(), a.arr.end(), r.arr.begin(), [&b, &index](const _T& n) { return n + b.arr[index++]; });
+		return r;
+	}
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator-(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x - b.x), _N> {
+		size_t index = 0u;
+		Vec<decltype(a.x - b.x), _N> r(a);
+		std::transform(a.arr.begin(), a.arr.end(), r.arr.begin(), [&b, &index](const _T& n) { return n - b.arr[index++]; });
+		return r;
+	}
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator*(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x * b.x), _N> {
+		size_t index = 0u;
+		Vec<decltype(a.x * b.x), _N> r(a);
+		std::transform(a.arr.begin(), a.arr.end(), r.arr.begin(), [&b, &index](const _T& n) { return n * b.arr[index++]; });
+		return r;
+	}
+
+	template <typename _T, typename _U, size_t _N>
+	inline auto operator/(const Vec<_T, _N>& a, const Vec<_U, _N>& b) noexcept -> Vec<decltype(a.x / b.x), _N> {
+		size_t index = 0u;
+		Vec<decltype(a.x / b.x), _N> r(a);
+		std::transform(a.arr.begin(), a.arr.end(), r.arr.begin(), [&b, &index](const _T& n) { return n / b.arr[index++]; });
+		return r;
+	}
 
 	template <typename _T>
 	std::ostream& operator<<(std::ostream& stream, const PointComponents<_T, 1u>& pc) noexcept {
@@ -47,16 +193,6 @@ namespace PL {
 		stream << '(' << pc.x << ", " << pc.y << ", " << pc.z << pc.w << ')';
 		return stream;
 	}
-
-	template <typename _T> using Point1 = PointComponents<_T, 1u>;
-	template <typename _T> using Point2 = PointComponents<_T, 2u>;
-	template <typename _T> using Point3 = PointComponents<_T, 3u>;
-	template <typename _T> using Point4 = PointComponents<_T, 4u>;
-
-	template <typename _T> using Vec1 = PointComponents<_T, 1u>;
-	template <typename _T> using Vec2 = PointComponents<_T, 2u>;
-	template <typename _T> using Vec3 = PointComponents<_T, 3u>;
-	template <typename _T> using Vec4 = PointComponents<_T, 4u>;
 
 	struct Vec4f32 {
 		union {
@@ -213,6 +349,22 @@ namespace PL {
 
 	}; // struct Vec4f32
 
+	inline bool operator==(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE)
+		return _mm_movemask_ps(_mm_cmpeq_ps(a.reg, b.reg)) == 0xFFFFFFFF;
+#else
+		return (a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w);
+#endif
+	}
+
+	inline bool operator!=(const Vec4f32& a, const Vec4f32& b) noexcept {
+#if !defined(__POLAR__NO_SSE)
+		return _mm_movemask_ps(_mm_cmpeq_ps(a.reg, b.reg)) != 0xFFFFFFFF;
+#else
+		return (a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w);
+#endif
+	}
+
 	inline Vec4f32 operator+(Vec4f32 a, const Vec4f32& b) noexcept { a += b; return a; }
 	inline Vec4f32 operator-(Vec4f32 a, const Vec4f32& b) noexcept { a -= b; return a; }
 	inline Vec4f32 operator*(Vec4f32 a, const Vec4f32& b) noexcept { a *= b; return a; }
@@ -279,5 +431,7 @@ namespace PL {
 	}
 
 }; // namespace PL
+
+#undef __POLAR__DEFINE_POINT_COMPONENT_IN_STRUCT_OPERATORS
 
 #endif // __POLAR__FILE_VECTOR_HPP
